@@ -164,7 +164,10 @@ public class PdfCompressorEngine
 
             // Calculate target dimensions based on DPI
             int targetDpi = _options.GetTargetDpi();
-            double scaleFactor = targetDpi / 300.0; // Assume original is 300 DPI
+            // Assume original images are 300 DPI if not specified in metadata
+            // This is a common default for scanned/print-quality PDFs
+            const int assumedOriginalDpi = 300;
+            double scaleFactor = targetDpi / (double)assumedOriginalDpi;
 
             int targetWidth = (int)(imageWidth * scaleFactor);
             int targetHeight = (int)(imageHeight * scaleFactor);
@@ -172,16 +175,10 @@ public class PdfCompressorEngine
             // Only downsample if the image is larger than target
             if (imageWidth > targetWidth || imageHeight > targetHeight)
             {
-                // For iText, we work with the image data directly
-                // Re-compress with JPEG if applicable
-                var filter = imageStream.GetAsName(PdfName.Filter);
-                
-                if (filter != null && (filter.Equals(PdfName.DCTDecode) || filter.Equals(PdfName.JPXDecode)))
-                {
-                    // Apply JPEG compression settings
-                    // Note: iText automatically handles compression during write
-                    // We can influence this through writer properties
-                }
+                // Note: iText7's automatic compression and optimization during document writing
+                // will handle image recompression based on the writer properties.
+                // The full compression mode and compression level settings in WriterProperties
+                // control the actual compression of image data.
             }
         }
         catch (Exception ex)
@@ -291,6 +288,7 @@ public class PdfCompressorEngine
             for (int i = 1; i <= numberOfPages; i++)
             {
                 PdfPage page = pdfDoc.GetPage(i);
+                // Get the first content stream (index 0) for each page
                 var contentStream = page.GetContentStream(0);
                 
                 if (contentStream != null)

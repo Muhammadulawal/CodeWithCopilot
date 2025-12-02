@@ -1,7 +1,5 @@
 ﻿using PdfCompressor;
 
-namespace PdfCompressor;
-
 class Program
 {
     static void Main(string[] args)
