@@ -22,24 +22,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
           // Create participants list HTML
-          let participantsHTML = '';
-          if (details.participants.length > 0) {
-            participantsHTML = `
-              <div class="participants-section">
-                <strong>Participants:</strong>
-                <ul>
-                  ${details.participants.map(p => `<li>${p}</li>`).join('')}
-                </ul>
-              </div>
-            `;
-          } else {
-            participantsHTML = `
-              <div class="participants-section empty">
-                <strong>Participants:</strong>
-                <p>No one has signed up yet.</p>
-              </div>
-            `;
-          }
+        let participantsHTML = '';
+        if (details.participants.length > 0) {
+          participantsHTML = `
+            <div class="participants-section">
+              <strong>Participants:</strong>
+              <ul class="participants-list">
+                ${details.participants.map(p => `
+                  <li class="participant-item">
+                    <span class="participant-email">${p}</span>
+                    <span class="delete-participant" title="Unregister" data-activity="${name}" data-email="${p}">&#128465;</span>
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          `;
+        } else {
+          participantsHTML = `
+            <div class="participants-section empty">
+              <strong>Participants:</strong>
+              <p>No one has signed up yet.</p>
+            </div>
+          `;
+        }
 
           activityCard.innerHTML = `
             <h4>${name}</h4>
@@ -50,6 +55,33 @@ document.addEventListener("DOMContentLoaded", () => {
           `;
 
         activitiesList.appendChild(activityCard);
+
+          // Add event listeners for delete icons
+          activityCard.querySelectorAll('.delete-participant').forEach(icon => {
+            icon.addEventListener('click', async (e) => {
+              const activityName = icon.getAttribute('data-activity');
+              const email = icon.getAttribute('data-email');
+              if (confirm(`Unregister ${email} from ${activityName}?`)) {
+                try {
+                  const response = await fetch(`/activities/${encodeURIComponent(activityName)}/unregister?email=${encodeURIComponent(email)}`, {
+                    method: 'DELETE',
+                  });
+                  const result = await response.json();
+                  if (response.ok) {
+                    fetchActivities(); // Refresh list
+                    messageDiv.textContent = result.message;
+                    messageDiv.style.color = 'green';
+                  } else {
+                    messageDiv.textContent = result.detail || 'Failed to unregister.';
+                    messageDiv.style.color = 'red';
+                  }
+                } catch (err) {
+                  messageDiv.textContent = 'Error unregistering participant.';
+                  messageDiv.style.color = 'red';
+                }
+              }
+            });
+          });
 
         // Add option to select dropdown
         const option = document.createElement("option");
