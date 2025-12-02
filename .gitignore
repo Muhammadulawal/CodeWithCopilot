@@ -40,3 +40,12 @@ Thumbs.db
 .actrc*
 
 __pycache__/
+
+# .NET build artifacts #
+########################
+bin/
+obj/
+*.user
+*.suo
+*.cache
+.vs/
